@@ -1,0 +1,90 @@
+#include<stdio.h>
+#define m 4
+#define n 4
+
+//试探方向存储结构
+typedef struct {
+	int xx, yy;
+}Direction;
+//东南西北
+Direction dire[4] = { {0,1},{1,0},{0,-1},{-1,0} };
+
+
+typedef struct node {
+	int x, y;
+}Node;
+typedef struct path {
+	Node data[100];//标记路径位置的数组
+	int count;//统计节点
+}Path;
+
+//输出路径
+void print(Path p, int* N) {
+	*N += 1;
+	printf("第%d条路径:\n", *N);
+	for (int i = 0; i < p.count; i++) {
+		printf("(%d,%d)->", p.data[i].x, p.data[i].y);
+	}
+	printf("Printover!\n\n");
+}
+
+void find_path(int maze[][n + 2], int* N, int x, int y, int endx, int endy, Path p) {
+	//如果走到终点的时候
+	if (x == endx && y == endy) {
+		maze[x][y] = -1;
+		//把终点位置存入到路径去
+		p.data[p.count].x = x;
+		p.data[p.count].y = y;
+		p.count++;
+		print(p, N);//输出路径
+		//走完了就回到上一个位置，然后换方向走
+		return;
+	}
+	else {
+		//如果当前位置为0，也就是能走的话
+		if (maze[x][y] == 0) {
+			int di = 0;
+			while (di < 4) {//4个方向都进行试探
+				//储存当前位置
+				p.data[p.count].x = x;
+				p.data[p.count].y = y;
+				p.count++;
+				//标记为-1，表示已经走过
+				maze[x][y] = -1;
+				int i, j;
+				//改变方向
+				i = x + dire[di].xx;
+				j = y + dire[di].yy;
+
+				find_path(maze, N, i, j, endx, endy, p);//递归进入到下一个位置
+
+				//回溯：回到上一个位置继续操作
+				//当前位置给抹除掉
+				p.count--;
+				maze[x][y] = 0;
+
+				di++;//改变方向
+			}
+		}
+		//不能走的话就返回，回到上一个位置
+		else
+			return;
+	}
+}
+
+
+int main() {
+	int maze[m + 2][n + 2] = {
+		{1, 1, 1, 1, 1, 1},
+		{1, 0, 0, 0, 1, 1},
+		{1, 0, 1, 0, 0, 1},
+		{1, 0, 0, 0, 1 ,1},
+		{1, 1, 0, 0, 0, 1},
+		{1, 1, 1, 1, 1, 1}
+	};
+	Path mp;
+	mp.count = 0;
+	int N = 0;
+
+	find_path(maze, &N, 1, 1, m, n, mp);
+}
